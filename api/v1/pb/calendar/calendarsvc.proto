@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+option go_package = "./;calendarsvc";
+
+package pb;
+
+service Calendar {
+
+  rpc IndexEvent(IndexEventRequest) returns (IndexEventReply) {}
+
+  rpc StoreEvent(StoreEventRequest) returns (StoreEventReply) {}
+
+  rpc ShowEvent(ShowEventRequest) returns (ShowEventReply) {}
+
+  rpc UpdateEvent(UpdateEventRequest) returns (UpdateEventReply) {}
+
+  rpc DeleteEvent(DeleteEventRequest) returns (DeleteEventReply) {}
+
+  rpc ServiceStatus (ServiceStatusRequest) returns (ServiceStatusReply) {}
+
+}
+
+message Event {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string time = 4;
+  string timezone = 5;
+  int32 duration = 6;
+  repeated string notes = 7;
+}
+
+message IndexEventRequest {
+  message Filters {
+    string key = 1;
+    string value = 2;
+  }
+  repeated Filters filters = 1;
+}
+
+message IndexEventReply {
+  repeated Event events = 1;
+  string Err = 2;
+}
+
+message StoreEventRequest {
+  Event event = 1;
+}
+
+message StoreEventReply {
+  int32 status = 1;
+  string err = 2;
+}
+
+message ShowEventRequest {
+  string ID = 1;
+}
+
+message ShowEventReply {
+  Event event = 1;
+  string err = 2;
+}
+
+message UpdateEventRequest {
+  string id = 1;
+  Event event = 2;
+}
+
+message UpdateEventReply {
+  int32 status = 1;
+  string err = 2;
+}
+
+message DeleteEventRequest {
+  string id = 1;
+}
+
+message DeleteEventReply {
+  int32 status = 1;
+  string err = 2;
+}
+
+message ServiceStatusRequest {}
+
+message ServiceStatusReply {
+  int32 status = 1;
+  string err = 2;
+}

@@ -1,7 +1,7 @@
 package endpoints
 
 import (
-	domain "calendarWorkshop/internal/domain/calendar"
+	domain "calendarWorkshop/models"
 	"calendarWorkshop/pkg/calendar"
 	"context"
 	"errors"

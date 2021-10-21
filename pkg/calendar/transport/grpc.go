@@ -2,7 +2,7 @@ package transport
 
 import (
 	calendarsvc "calendarWorkshop/api/v1/pb/calendar"
-	"calendarWorkshop/internal/domain/calendar"
+	"calendarWorkshop/models"
 	"calendarWorkshop/pkg/calendar/endpoints"
 	"context"
 	grpctransport "github.com/go-kit/kit/transport/grpc"
@@ -102,9 +102,9 @@ func (g *grpcServer) ServiceStatus(ctx context.Context, r *calendarsvc.ServiceSt
 
 func decodeGRPCIndexEventRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*calendarsvc.IndexEventRequest)
-	var filters []calendar.Filter
+	var filters []models.Filter
 	for _, f := range req.Filters {
-		filters = append(filters, calendar.Filter{Key: f.Key, Value: f.Value})
+		filters = append(filters, models.Filter{Key: f.Key, Value: f.Value})
 	}
 	return endpoints.IndexEventRequest{Filters: filters}, nil
 }
@@ -115,7 +115,7 @@ func decodeGRPCStoreEventRequest(_ context.Context, grpcReq interface{}) (interf
 	for _, note := range req.Event.Notes {
 		notes = append(notes, note)
 	}
-	event := &calendar.Event{
+	event := &models.Event{
 		ID:          req.Event.Id,
 		Title:       req.Event.Title,
 		Description: req.Event.Description,
@@ -138,7 +138,7 @@ func decodeGRPCUpdateEventRequest(_ context.Context, grpcReq interface{}) (inter
 	for _, note := range req.Event.Notes {
 		notes = append(notes, note)
 	}
-	event := &calendar.Event{
+	event := &models.Event{
 		ID:          req.Event.Id,
 		Title:       req.Event.Title,
 		Description: req.Event.Description,
@@ -161,13 +161,13 @@ func decodeGRPCServiceStatusRequest(_ context.Context, grpcReq interface{}) (int
 
 func decodeGRPCIndexEventResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
 	reply := grpcReply.(*calendarsvc.IndexEventReply)
-	var events []calendar.Event
+	var events []models.Event
 	for _, e := range reply.Events {
 		var notes []string
 		for _, note := range e.Notes {
 			notes = append(notes, note)
 		}
-		event := calendar.Event{
+		event := models.Event{
 			ID:          e.Id,
 			Title:       e.Title,
 			Description: e.Description,
@@ -193,7 +193,7 @@ func decodeGRPCShowEventResponse(_ context.Context, grpcReply interface{}) (inte
 	for _, note := range reply.Event.Notes {
 		notes = append(notes, note)
 	}
-	event := &calendar.Event{
+	event := &models.Event{
 		ID:          reply.Event.Id,
 		Title:       reply.Event.Title,
 		Description: reply.Event.Description,

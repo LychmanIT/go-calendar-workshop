@@ -19,15 +19,15 @@ import (
 )
 
 const (
-	defaultHTTPPort = "8081"
-	defaultGRPCPort = "8082"
+	defaultHTTPPort = "8083"
+	defaultGRPCPort = "8084"
 )
 
 func main() {
 	var (
 		logger   log.Logger
-		httpAddr = net.JoinHostPort("localhost", envString("HTTP_PORT", defaultHTTPPort))
-		grpcAddr = net.JoinHostPort("localhost", envString("GRPC_PORT", defaultGRPCPort))
+		httpAddr = net.JoinHostPort("0.0.0.0", envString("HTTP_PORT", defaultHTTPPort))
+		grpcAddr = net.JoinHostPort("0.0.0.0", envString("GRPC_PORT", defaultGRPCPort))
 	)
 
 	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))

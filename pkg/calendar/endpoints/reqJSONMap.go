@@ -1,18 +1,20 @@
 package endpoints
 
-import "calendarWorkshop/internal/domain/calendar"
+import (
+	"calendarWorkshop/models"
+)
 
 type IndexEventRequest struct {
-	Filters []calendar.Filter `json:"filters,omitempty"`
+	Filters []models.Filter `json:"filters,omitempty"`
 }
 
 type IndexEventResponse struct {
-	Events []calendar.Event `json:"events"`
-	Err    string           `json:"err,omitempty"`
+	Events []models.Event `json:"events"`
+	Err    string         `json:"err,omitempty"`
 }
 
 type StoreEventRequest struct {
-	Event *calendar.Event `json:"event"`
+	Event *models.Event `json:"event"`
 }
 
 type StoreEventResponse struct {
@@ -25,13 +27,13 @@ type ShowEventRequest struct {
 }
 
 type ShowEventResponse struct {
-	Event *calendar.Event `json:"event"`
-	Err   string          `json:"err,omitempty"`
+	Event *models.Event `json:"event"`
+	Err   string        `json:"err,omitempty"`
 }
 
 type UpdateEventRequest struct {
-	EventID string          `json:"id"`
-	Event   *calendar.Event `json:"event"`
+	EventID string        `json:"id"`
+	Event   *models.Event `json:"event"`
 }
 
 type UpdateEventResponse struct {

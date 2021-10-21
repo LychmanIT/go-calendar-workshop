@@ -1,7 +1,7 @@
 package calendar
 
 import (
-	"calendarWorkshop/internal/domain/calendar"
+	"calendarWorkshop/models"
 	"context"
 	"github.com/go-kit/kit/log"
 	"github.com/google/uuid"
@@ -17,7 +17,7 @@ type calendarService struct {
 func NewService() Service { return &calendarService{} }
 
 // IndexEvent ...
-func (c *calendarService) IndexEvent(_ context.Context, filters ...calendar.Filter) ([]calendar.Event, error) {
+func (c *calendarService) IndexEvent(_ context.Context, filters ...models.Filter) ([]models.Event, error) {
 
 	//grpclientDB.store(smth)
 
@@ -26,7 +26,7 @@ func (c *calendarService) IndexEvent(_ context.Context, filters ...calendar.Filt
 		return nil, err
 	}
 
-	e := calendar.Event{
+	e := models.Event{
 		ID:          uuid.New().String(),
 		Title:       "New Event",
 		Description: "It`s description",
@@ -39,22 +39,22 @@ func (c *calendarService) IndexEvent(_ context.Context, filters ...calendar.Filt
 			"Note3",
 		},
 	}
-	return []calendar.Event{e}, nil
+	return []models.Event{e}, nil
 }
 
 // StoreEvent ...
-func (c *calendarService) StoreEvent(ctx context.Context, e *calendar.Event) (int, error) {
+func (c *calendarService) StoreEvent(ctx context.Context, e *models.Event) (int, error) {
 	return http.StatusOK, nil
 }
 
 // ShowEvent ...
-func (c *calendarService) ShowEvent(ctx context.Context, eventID string) (*calendar.Event, error) {
+func (c *calendarService) ShowEvent(ctx context.Context, eventID string) (*models.Event, error) {
 	loc, err := time.LoadLocation("America/Chicago")
 	if err != nil {
 		return nil, err
 	}
 
-	e := calendar.Event{
+	e := models.Event{
 		ID:          uuid.New().String(),
 		Title:       "New Event",
 		Description: "It`s description",
@@ -71,7 +71,7 @@ func (c *calendarService) ShowEvent(ctx context.Context, eventID string) (*calen
 }
 
 // UpdateEvent ...
-func (c *calendarService) UpdateEvent(ctx context.Context, eventID string, e *calendar.Event) (int, error) {
+func (c *calendarService) UpdateEvent(ctx context.Context, eventID string, e *models.Event) (int, error) {
 	return http.StatusAccepted, nil
 }
 

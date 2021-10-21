@@ -5,46 +5,56 @@ import (
 	"calendarWorkshop/pkg/calendar/endpoints"
 	"context"
 	"encoding/json"
-	"net/http"
-
+	"errors"
 	httptransport "github.com/go-kit/kit/transport/http"
+	"github.com/gorilla/mux"
+	"net/http"
+)
+
+var (
+	ErrBadRouting = errors.New("bad routing")
 )
 
 func NewHTTPHandler(ep endpoints.Set) http.Handler {
-	m := http.NewServeMux()
+	r := mux.NewRouter()
 
-	m.Handle("/status", httptransport.NewServer(
+	r.Methods("GET").Path("/status").Handler(httptransport.NewServer(
 		ep.ServiceStatusEndpoint,
 		decodeHTTPServiceStatusRequest,
 		encodeResponse,
 	))
-	m.Handle("/index", httptransport.NewServer(
+
+	r.Methods("GET").Path("/index").Handler(httptransport.NewServer(
 		ep.IndexEventEndpoint,
 		decodeHTTPIndexEventRequest,
 		encodeResponse,
 	))
-	m.Handle("/store", httptransport.NewServer(
+
+	r.Methods("POST").Path("/store").Handler(httptransport.NewServer(
 		ep.StoreEventEndpoint,
 		decodeHTTPStoreEventRequest,
 		encodeResponse,
 	))
-	m.Handle("/show", httptransport.NewServer(
+
+	r.Methods("GET").Path("/show/{id}").Handler(httptransport.NewServer(
 		ep.ShowEventEndpoint,
 		decodeHTTPShowEventRequest,
 		encodeResponse,
 	))
-	m.Handle("/update", httptransport.NewServer(
+
+	r.Methods("PUT").Path("/update/{id}").Handler(httptransport.NewServer(
 		ep.UpdateEventEndpoint,
 		decodeHTTPUpdateEventRequest,
 		encodeResponse,
 	))
-	m.Handle("/delete", httptransport.NewServer(
+
+	r.Methods("DELETE").Path("/delete/{id}").Handler(httptransport.NewServer(
 		ep.DeleteEventEndpoint,
 		decodeHTTPDeleteEventRequest,
 		encodeResponse,
 	))
 
-	return m
+	return r
 }
 
 func decodeHTTPIndexEventRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -69,21 +79,29 @@ func decodeHTTPStoreEventRequest(ctx context.Context, r *http.Request) (interfac
 }
 
 func decodeHTTPShowEventRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	var req endpoints.ShowEventRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
-		return nil, err
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
+	if !ok {
+		return nil, ErrBadRouting
 	}
-	return req, nil
+	return endpoints.ShowEventRequest{EventID: id}, nil
 }
 
 func decodeHTTPUpdateEventRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	var req endpoints.UpdateEventRequest
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
+	if !ok {
+		return nil, ErrBadRouting
+	}
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		return nil, err
 	}
-	return req, nil
+	return endpoints.UpdateEventRequest{
+		EventID: id,
+		Event:   nil,
+	}, nil
 }
 
 func decodeHTTPDeleteEventRequest(_ context.Context, r *http.Request) (interface{}, error) {

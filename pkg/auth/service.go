@@ -1,10 +1,10 @@
 package auth
 
 import (
-	"calendarWorkshop/internal/domain/auth"
+	"calendarWorkshop/models"
 	"context"
 )
 
 type Service interface {
-	Login(ctx context.Context, credentials auth.Auth) (*auth.User, error)
+	Login(ctx context.Context, credentials models.Auth) (*models.User, error)
 }

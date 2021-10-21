@@ -1,7 +1,7 @@
 package db
 
 import (
-	"calendarWorkshop/internal/domain/calendar"
+	"calendarWorkshop/models"
 	"context"
 	"net/http"
 	"time"
@@ -15,21 +15,21 @@ func (d *dbService) GetUser(ctx context.Context, ID string) (int, error) {
 	return http.StatusOK, nil
 }
 
-func (d *dbService) AddEvent(_ context.Context, e *calendar.Event) (string, error) {
+func (d *dbService) AddEvent(_ context.Context, e *models.Event) (string, error) {
 	return "", nil
 }
 
-func (d *dbService) AllEvents(_ context.Context, filters ...calendar.Filter) ([]calendar.Event, error) {
-	return []calendar.Event{}, nil
+func (d *dbService) AllEvents(_ context.Context, filters ...models.Filter) ([]models.Event, error) {
+	return []models.Event{}, nil
 }
 
-func (d *dbService) ShowEvent(_ context.Context, ID string) (*calendar.Event, error) {
+func (d *dbService) ShowEvent(_ context.Context, ID string) (*models.Event, error) {
 	loc, err := time.LoadLocation("America/Chicago")
 	if err != nil {
 		return nil, err
 	}
 
-	e := calendar.Event{
+	e := models.Event{
 		ID:          ID,
 		Title:       "New Event",
 		Description: "It`s description",
@@ -45,7 +45,7 @@ func (d *dbService) ShowEvent(_ context.Context, ID string) (*calendar.Event, er
 	return &e, nil
 }
 
-func (d *dbService) UpdateEvent(_ context.Context, ID string, e *calendar.Event) (int, error) {
+func (d *dbService) UpdateEvent(_ context.Context, ID string, e *models.Event) (int, error) {
 	return http.StatusOK, nil
 }
 

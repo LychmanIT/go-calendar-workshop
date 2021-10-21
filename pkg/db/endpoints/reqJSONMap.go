@@ -1,14 +1,16 @@
 package endpoints
 
-import "calendarWorkshop/internal/domain/calendar"
+import (
+	"calendarWorkshop/models"
+)
 
 type AllEventsRequest struct {
-	Filters []calendar.Event `json:"filters,omitempty"`
+	Filters []models.Event `json:"filters,omitempty"`
 }
 
 type AllEventsResponse struct {
-	Event []calendar.Event `json:"event"`
-	Err   string           `json:"err,omitempty"`
+	Event []models.Event `json:"event"`
+	Err   string         `json:"err,omitempty"`
 }
 
 type UpdateRequest struct {

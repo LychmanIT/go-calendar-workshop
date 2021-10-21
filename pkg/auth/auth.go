@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"calendarWorkshop/internal/domain/auth"
+	"calendarWorkshop/models"
 	"context"
 )
 
@@ -9,6 +9,6 @@ type authService struct{}
 
 func NewService() Service { return &authService{} }
 
-func (a *authService) Login(ctx context.Context, credentials auth.Auth) (*auth.User, error) {
-	return &auth.User{}, nil
+func (a *authService) Login(ctx context.Context, credentials models.Auth) (*models.User, error) {
+	return &models.User{}, nil
 }

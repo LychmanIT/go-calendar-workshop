@@ -1,4 +1,4 @@
-package calendar
+package models
 
 type Event struct {
 	ID          string   `json:"id"`

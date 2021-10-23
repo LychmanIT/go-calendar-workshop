@@ -1,5 +1,5 @@
 CREATE TABLE events (
-    id SERIAL primary key,
+    id VARCHAR ( 100 ) primary key,
     title VARCHAR ( 100 ) NOT NULL,
     description VARCHAR ( 255 ) NOT NULL,
     time VARCHAR ( 50 ) NOT NULL,
@@ -8,9 +8,9 @@ CREATE TABLE events (
 );
 
 CREATE TABLE event_notes (
-    id SERIAL primary key,
-    event_id INTEGER,
-    text TEXT not null,
-    FOREIGN KEY (event_id) REFERENCES events(id)
+    id VARCHAR ( 100 ) primary key,
+    event_id VARCHAR ( 100 ),
+    text VARCHAR ( 255 ) not null,
+    FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
 );
 

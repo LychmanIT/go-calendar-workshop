@@ -13,6 +13,7 @@ services:
     environment:
       HTTP_PORT: "8081"
       GRPC_PORT: "8082"
+      DATABASE_URL: "postgres://gouser:gopassword@db:5432/gotest?sslmode=disable"
     depends_on:
       - db
     networks:

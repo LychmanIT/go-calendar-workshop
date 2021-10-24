@@ -1,58 +1,65 @@
 package endpoints
 
-import (
-	"calendarWorkshop/models"
-)
+import "calendarWorkshop/models"
+
+type GetUserRequest struct {
+	Auth *models.Auth `json:"auth"`
+}
+
+type GetUserResponse struct {
+	Status int    `json:"status"`
+	Err    string `json:"err,omitempty"`
+}
 
 type AllEventsRequest struct {
-	Filters []models.Event `json:"filters,omitempty"`
+	Filters []models.Filter `json:"filters,omitempty"`
 }
 
 type AllEventsResponse struct {
-	Event []models.Event `json:"event"`
-	Err   string         `json:"err,omitempty"`
+	Events []models.Event `json:"events"`
+	Err    string         `json:"err,omitempty"`
 }
 
-type UpdateRequest struct {
-	TicketID string             `json:"ticketID"`
-	Document *internal.Document `json:"document"`
+type AddEventRequest struct {
+	Event *models.Event `json:"event"`
 }
 
-type UpdateResponse struct {
-	Code int    `json:"code"`
-	Err  string `json:"err,omitempty"`
+type AddEventResponse struct {
+	Status int    `json:"status"`
+	Err    string `json:"err,omitempty"`
 }
 
-type AddRequest struct {
-	Document *internal.Document `json:"document"`
+type ShowEventRequest struct {
+	EventID string `json:"id"`
 }
 
-type AddResponse struct {
-	TicketID string `json:"ticketID"`
-	Err      string `json:"err"`
+type ShowEventResponse struct {
+	Event *models.Event `json:"event"`
+	Err   string        `json:"err,omitempty"`
 }
 
-type RemoveRequest struct {
-	TicketID string `json:"ticketID"`
+type UpdateEventRequest struct {
+	EventID string        `json:"id"`
+	Event   *models.Event `json:"event"`
 }
 
-type RemoveResponse struct {
-	Code int    `json:"code"`
-	Err  string `json:"err"`
+type UpdateEventResponse struct {
+	Status int    `json:"status"`
+	Err    string `json:"err,omitempty"`
 }
 
-//type ValidateRequest struct {
-//	Document *internal.Document `json:"document"`
-//}
-//
-//type ValidateResponse struct {
-//	Valid bool   `json:"valid"`
-//	Err   string `json:"err,omitempty"`
-//}
+type DeleteEventRequest struct {
+	EventID string `json:"id"`
+}
+
+type DeleteEventResponse struct {
+	Status int    `json:"status"`
+	Err    string `json:"err,omitempty"`
+}
 
 type ServiceStatusRequest struct{}
 
 type ServiceStatusResponse struct {
-	Code int    `json:"code"`
-	Err  string `json:"err,omitempty"`
+	Status int    `json:"status"`
+	Err    string `json:"err,omitempty"`
 }

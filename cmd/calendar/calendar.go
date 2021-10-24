@@ -72,7 +72,6 @@ func main() {
 		})
 	}
 	{
-		// This function just sits and waits for ctrl-C.
 		cancelInterrupt := make(chan struct{})
 		g.Add(func() error {
 			c := make(chan os.Signal, 1)

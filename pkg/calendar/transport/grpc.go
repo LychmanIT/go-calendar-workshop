@@ -222,12 +222,12 @@ func decodeGRPCServiceStatusResponse(_ context.Context, grpcReply interface{}) (
 
 // TODO: some DRY prettify
 // TODO 1.18 jenerics
-//func grpcToEvent(req interface{}) (*calendar.Event, error) {
+//func grpcToEvent(req interface{}) (*db.Event, error) {
 //	var notes []string
 //	for _, note := range req.Event.Notes {
 //		notes = append(notes, note)
 //	}
-//	event := &calendar.Event{
+//	event := &db.Event{
 //		ID:          req.Event.Id,
 //		Title:       req.Event.Title,
 //		Description: req.Event.Description,

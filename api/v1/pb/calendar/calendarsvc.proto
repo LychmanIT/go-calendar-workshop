@@ -6,21 +6,21 @@ package pb;
 
 service Calendar {
 
-  rpc IndexEvent(IndexEventRequest) returns (IndexEventReply) {}
+  rpc CalendarIndexEvent(CalendarIndexEventRequest) returns (CalendarIndexEventReply) {}
 
-  rpc StoreEvent(StoreEventRequest) returns (StoreEventReply) {}
+  rpc CalendarStoreEvent(CalendarStoreEventRequest) returns (CalendarStoreEventReply) {}
 
-  rpc ShowEvent(ShowEventRequest) returns (ShowEventReply) {}
+  rpc CalendarShowEvent(CalendarShowEventRequest) returns (CalendarShowEventReply) {}
 
-  rpc UpdateEvent(UpdateEventRequest) returns (UpdateEventReply) {}
+  rpc CalendarUpdateEvent(CalendarUpdateEventRequest) returns (CalendarUpdateEventReply) {}
 
-  rpc DeleteEvent(DeleteEventRequest) returns (DeleteEventReply) {}
+  rpc CalendarDeleteEvent(CalendarDeleteEventRequest) returns (CalendarDeleteEventReply) {}
 
-  rpc ServiceStatus (ServiceStatusRequest) returns (ServiceStatusReply) {}
+  rpc CalendarServiceStatus (CalendarServiceStatusRequest) returns (CalendarServiceStatusReply) {}
 
 }
 
-message Event {
+message CalendarEvent {
   string id = 1;
   string title = 2;
   string description = 3;
@@ -30,7 +30,7 @@ message Event {
   repeated string notes = 7;
 }
 
-message IndexEventRequest {
+message CalendarIndexEventRequest {
   message Filters {
     string key = 1;
     string value = 2;
@@ -38,51 +38,51 @@ message IndexEventRequest {
   repeated Filters filters = 1;
 }
 
-message IndexEventReply {
-  repeated Event events = 1;
+message CalendarIndexEventReply {
+  repeated CalendarEvent events = 1;
   string Err = 2;
 }
 
-message StoreEventRequest {
-  Event event = 1;
+message CalendarStoreEventRequest {
+  CalendarEvent event = 1;
 }
 
-message StoreEventReply {
+message CalendarStoreEventReply {
   int32 status = 1;
   string err = 2;
 }
 
-message ShowEventRequest {
+message CalendarShowEventRequest {
   string ID = 1;
 }
 
-message ShowEventReply {
-  Event event = 1;
+message CalendarShowEventReply {
+  CalendarEvent event = 1;
   string err = 2;
 }
 
-message UpdateEventRequest {
+message CalendarUpdateEventRequest {
   string id = 1;
-  Event event = 2;
+  CalendarEvent event = 2;
 }
 
-message UpdateEventReply {
+message CalendarUpdateEventReply {
   int32 status = 1;
   string err = 2;
 }
 
-message DeleteEventRequest {
+message CalendarDeleteEventRequest {
   string id = 1;
 }
 
-message DeleteEventReply {
+message CalendarDeleteEventReply {
   int32 status = 1;
   string err = 2;
 }
 
-message ServiceStatusRequest {}
+message CalendarServiceStatusRequest {}
 
-message ServiceStatusReply {
+message CalendarServiceStatusReply {
   int32 status = 1;
   string err = 2;
 }

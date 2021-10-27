@@ -1,93 +1,82 @@
 package calendar
 
 import (
+	dbsvc "calendarWorkshop/api/v1/pb/db"
+	"calendarWorkshop/internal/domain/calendar"
+	"calendarWorkshop/internal/util"
 	"calendarWorkshop/models"
 	"context"
-	"github.com/go-kit/kit/log"
-	"github.com/google/uuid"
+	"log"
 	"net/http"
-	"os"
-	"time"
 )
 
 type calendarService struct {
-	//grpcclientDB
+	dbClient dbsvc.DBClient
 }
 
-func NewService() Service { return &calendarService{} }
+func NewService(client dbsvc.DBClient) Service { return &calendarService{dbClient: client} }
 
-// IndexEvent ...
-func (c *calendarService) IndexEvent(_ context.Context, filters ...models.Filter) ([]models.Event, error) {
-
-	//grpclientDB.store(smth)
-
-	loc, err := time.LoadLocation("America/Chicago")
+// IndexEvent receives filters and returns list of the events
+func (c *calendarService) IndexEvent(ctx context.Context, filters ...models.Filter) ([]models.Event, error) {
+	grpcFilters := calendar.FiltersToGRPC(filters)
+	res, err := c.dbClient.AllEvents(ctx, &dbsvc.AllEventsRequest{Filters: grpcFilters})
 	if err != nil {
-		return nil, err
+		log.Print(err)
+		return []models.Event{}, nil
 	}
-
-	e := models.Event{
-		ID:          uuid.New().String(),
-		Title:       "New Event",
-		Description: "It`s description",
-		Time:        time.Now().In(loc).String(),
-		Timezone:    loc.String(),
-		Duration:    2,
-		Notes: []string{
-			"Note1",
-			"Note2",
-			"Note3",
-		},
-	}
-	return []models.Event{e}, nil
+	events := calendar.GRPCtoEvents(res.Events)
+	return events, nil
 }
 
-// StoreEvent ...
+// StoreEvent receives event and store it
 func (c *calendarService) StoreEvent(ctx context.Context, e *models.Event) (int, error) {
-	return http.StatusOK, nil
-}
-
-// ShowEvent ...
-func (c *calendarService) ShowEvent(ctx context.Context, eventID string) (*models.Event, error) {
-	loc, err := time.LoadLocation("America/Chicago")
+	event := calendar.EventToGRPC(e)
+	res, err := c.dbClient.AddEvent(ctx, &dbsvc.AddEventRequest{Event: event})
 	if err != nil {
-		return nil, err
+		log.Print(err)
+		return http.StatusInternalServerError, err
 	}
-
-	e := models.Event{
-		ID:          uuid.New().String(),
-		Title:       "New Event",
-		Description: "It`s description",
-		Time:        time.Now().In(loc).String(),
-		Timezone:    loc.String(),
-		Duration:    2,
-		Notes: []string{
-			"Note1",
-			"Note2",
-			"Note3",
-		},
-	}
-	return &e, nil
+	return int(res.Status), nil
 }
 
-// UpdateEvent ...
+// ShowEvent receives an ID of the needed event and returns it. If there is no event - returns error
+func (c *calendarService) ShowEvent(ctx context.Context, eventID string) (*models.Event, error) {
+	res, err := c.dbClient.ShowEvent(ctx, &dbsvc.ShowEventRequest{ID: eventID})
+	if err != nil {
+		log.Print(err)
+		return &models.Event{}, err
+	}
+	if res.Event.Id == "" {
+		return nil, util.ErrEventNotFound
+	}
+	event := calendar.GRPCtoEvent(res.Event)
+	return &event, nil
+}
+
+// UpdateEvent receives an ID of the needed event and new event instance to update it with. Returns status 200 if everything is good
+// and status 404/500 if there is an error
 func (c *calendarService) UpdateEvent(ctx context.Context, eventID string, e *models.Event) (int, error) {
-	return http.StatusAccepted, nil
+	event := calendar.EventToGRPC(e)
+	res, err := c.dbClient.UpdateEvent(ctx, &dbsvc.UpdateEventRequest{Id: eventID, Event: event})
+	if err != nil {
+		log.Print(err)
+		return http.StatusInternalServerError, err
+	}
+	return int(res.Status), nil
 }
 
-// DeleteEvent ...
+// DeleteEvent receives an ID of the needed event and deletes it. Returns status 200 if everything is good and status 404/500 if there is
+// an error
 func (c *calendarService) DeleteEvent(ctx context.Context, eventID string) (int, error) {
-	return http.StatusAccepted, nil
+	res, err := c.dbClient.DeleteEvent(ctx, &dbsvc.DeleteEventRequest{Id: eventID})
+	if err != nil {
+		log.Print(err)
+		return http.StatusInternalServerError, err
+	}
+	return int(res.Status), nil
 }
 
-// ServiceStatus ...
+// ServiceStatus returns current service status
 func (c *calendarService) ServiceStatus(ctx context.Context) (int, error) {
 	return http.StatusOK, nil
-}
-
-var logger log.Logger
-
-func init() {
-	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
-	logger = log.With(logger, "ts", log.DefaultTimestampUTC)
 }

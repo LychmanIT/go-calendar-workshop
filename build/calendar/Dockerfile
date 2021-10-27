@@ -6,9 +6,10 @@ ENV GOFLAGS="-mod=vendor"
 ADD . /dockerdev
 WORKDIR /dockerdev
 
-RUN CGO_ENABLED=0 cd cmd/db && go build -o /db
+RUN CGO_ENABLED=0 cd cmd/calendar && go build -o /calendar
 
-EXPOSE 8083
+EXPOSE 8081
+EXPOSE 8082
 EXPOSE 8084
 
 # Final stage

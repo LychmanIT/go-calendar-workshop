@@ -52,56 +52,56 @@ func NewGRPCServer(ep endpoints.Set) calendarsvc.CalendarServer {
 	}
 }
 
-func (g *grpcServer) IndexEvent(ctx context.Context, r *calendarsvc.IndexEventRequest) (*calendarsvc.IndexEventReply, error) {
+func (g *grpcServer) CalendarIndexEvent(ctx context.Context, r *calendarsvc.CalendarIndexEventRequest) (*calendarsvc.CalendarIndexEventReply, error) {
 	_, rep, err := g.indexEvent.ServeGRPC(ctx, r)
 	if err != nil {
 		return nil, err
 	}
-	return rep.(*calendarsvc.IndexEventReply), nil
+	return rep.(*calendarsvc.CalendarIndexEventReply), nil
 }
 
-func (g *grpcServer) StoreEvent(ctx context.Context, r *calendarsvc.StoreEventRequest) (*calendarsvc.StoreEventReply, error) {
+func (g *grpcServer) CalendarStoreEvent(ctx context.Context, r *calendarsvc.CalendarStoreEventRequest) (*calendarsvc.CalendarStoreEventReply, error) {
 	_, rep, err := g.storeEvent.ServeGRPC(ctx, r)
 	if err != nil {
 		return nil, err
 	}
-	return rep.(*calendarsvc.StoreEventReply), nil
+	return rep.(*calendarsvc.CalendarStoreEventReply), nil
 }
 
-func (g *grpcServer) ShowEvent(ctx context.Context, r *calendarsvc.ShowEventRequest) (*calendarsvc.ShowEventReply, error) {
+func (g *grpcServer) CalendarShowEvent(ctx context.Context, r *calendarsvc.CalendarShowEventRequest) (*calendarsvc.CalendarShowEventReply, error) {
 	_, rep, err := g.showEvent.ServeGRPC(ctx, r)
 	if err != nil {
 		return nil, err
 	}
-	return rep.(*calendarsvc.ShowEventReply), nil
+	return rep.(*calendarsvc.CalendarShowEventReply), nil
 }
 
-func (g *grpcServer) UpdateEvent(ctx context.Context, r *calendarsvc.UpdateEventRequest) (*calendarsvc.UpdateEventReply, error) {
+func (g *grpcServer) CalendarUpdateEvent(ctx context.Context, r *calendarsvc.CalendarUpdateEventRequest) (*calendarsvc.CalendarUpdateEventReply, error) {
 	_, rep, err := g.updateEvent.ServeGRPC(ctx, r)
 	if err != nil {
 		return nil, err
 	}
-	return rep.(*calendarsvc.UpdateEventReply), nil
+	return rep.(*calendarsvc.CalendarUpdateEventReply), nil
 }
 
-func (g *grpcServer) DeleteEvent(ctx context.Context, r *calendarsvc.DeleteEventRequest) (*calendarsvc.DeleteEventReply, error) {
+func (g *grpcServer) CalendarDeleteEvent(ctx context.Context, r *calendarsvc.CalendarDeleteEventRequest) (*calendarsvc.CalendarDeleteEventReply, error) {
 	_, rep, err := g.deleteEvent.ServeGRPC(ctx, r)
 	if err != nil {
 		return nil, err
 	}
-	return rep.(*calendarsvc.DeleteEventReply), nil
+	return rep.(*calendarsvc.CalendarDeleteEventReply), nil
 }
 
-func (g *grpcServer) ServiceStatus(ctx context.Context, r *calendarsvc.ServiceStatusRequest) (*calendarsvc.ServiceStatusReply, error) {
+func (g *grpcServer) CalendarServiceStatus(ctx context.Context, r *calendarsvc.CalendarServiceStatusRequest) (*calendarsvc.CalendarServiceStatusReply, error) {
 	_, rep, err := g.serviceStatus.ServeGRPC(ctx, r)
 	if err != nil {
 		return nil, err
 	}
-	return rep.(*calendarsvc.ServiceStatusReply), nil
+	return rep.(*calendarsvc.CalendarServiceStatusReply), nil
 }
 
 func decodeGRPCIndexEventRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	req := grpcReq.(*calendarsvc.IndexEventRequest)
+	req := grpcReq.(*calendarsvc.CalendarIndexEventRequest)
 	var filters []models.Filter
 	for _, f := range req.Filters {
 		filters = append(filters, models.Filter{Key: f.Key, Value: f.Value})
@@ -110,7 +110,7 @@ func decodeGRPCIndexEventRequest(_ context.Context, grpcReq interface{}) (interf
 }
 
 func decodeGRPCStoreEventRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	req := grpcReq.(*calendarsvc.StoreEventRequest)
+	req := grpcReq.(*calendarsvc.CalendarStoreEventRequest)
 	var notes []string
 	for _, note := range req.Event.Notes {
 		notes = append(notes, note)
@@ -128,12 +128,12 @@ func decodeGRPCStoreEventRequest(_ context.Context, grpcReq interface{}) (interf
 }
 
 func decodeGRPCShowEventRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	req := grpcReq.(*calendarsvc.ShowEventRequest)
+	req := grpcReq.(*calendarsvc.CalendarShowEventRequest)
 	return endpoints.ShowEventRequest{EventID: req.ID}, nil
 }
 
 func decodeGRPCUpdateEventRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	req := grpcReq.(*calendarsvc.UpdateEventRequest)
+	req := grpcReq.(*calendarsvc.CalendarUpdateEventRequest)
 	var notes []string
 	for _, note := range req.Event.Notes {
 		notes = append(notes, note)
@@ -151,7 +151,7 @@ func decodeGRPCUpdateEventRequest(_ context.Context, grpcReq interface{}) (inter
 }
 
 func decodeGRPCDeleteEventRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	req := grpcReq.(*calendarsvc.DeleteEventRequest)
+	req := grpcReq.(*calendarsvc.CalendarDeleteEventRequest)
 	return endpoints.DeleteEventRequest{EventID: req.Id}, nil
 }
 
@@ -160,7 +160,7 @@ func decodeGRPCServiceStatusRequest(_ context.Context, grpcReq interface{}) (int
 }
 
 func decodeGRPCIndexEventResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
-	reply := grpcReply.(*calendarsvc.IndexEventReply)
+	reply := grpcReply.(*calendarsvc.CalendarIndexEventReply)
 	var events []models.Event
 	for _, e := range reply.Events {
 		var notes []string
@@ -182,13 +182,13 @@ func decodeGRPCIndexEventResponse(_ context.Context, grpcReply interface{}) (int
 }
 
 func decodeGRPCStoreEventResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
-	reply := grpcReply.(*calendarsvc.StoreEventReply)
+	reply := grpcReply.(*calendarsvc.CalendarStoreEventReply)
 	return endpoints.StoreEventResponse{Status: int(reply.Status), Err: reply.Err}, nil
 }
 
 // TODO reply, ok
 func decodeGRPCShowEventResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
-	reply := grpcReply.(*calendarsvc.ShowEventReply)
+	reply := grpcReply.(*calendarsvc.CalendarShowEventReply)
 	var notes []string
 	for _, note := range reply.Event.Notes {
 		notes = append(notes, note)
@@ -206,17 +206,17 @@ func decodeGRPCShowEventResponse(_ context.Context, grpcReply interface{}) (inte
 }
 
 func decodeGRPCUpdateEventResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
-	reply := grpcReply.(*calendarsvc.UpdateEventReply)
+	reply := grpcReply.(*calendarsvc.CalendarUpdateEventReply)
 	return endpoints.UpdateEventResponse{Status: int(reply.Status), Err: reply.Err}, nil
 }
 
 func decodeGRPCDeleteEventResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
-	reply := grpcReply.(*calendarsvc.DeleteEventReply)
+	reply := grpcReply.(*calendarsvc.CalendarDeleteEventReply)
 	return endpoints.DeleteEventResponse{Status: int(reply.Status), Err: reply.Err}, nil
 }
 
 func decodeGRPCServiceStatusResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
-	reply := grpcReply.(*calendarsvc.ServiceStatusReply)
+	reply := grpcReply.(*calendarsvc.CalendarServiceStatusReply)
 	return endpoints.ServiceStatusResponse{Status: int(reply.Status), Err: reply.Err}, nil
 }
 

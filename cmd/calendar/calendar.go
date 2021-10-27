@@ -1,13 +1,14 @@
 package main
 
 import (
+	dbsvc "calendarWorkshop/api/v1/pb/db"
 	"calendarWorkshop/pkg/calendar"
 	"calendarWorkshop/pkg/calendar/endpoints"
 	"calendarWorkshop/pkg/calendar/transport"
 	"fmt"
-	"github.com/go-kit/kit/log"
 	"github.com/oklog/run"
 	"google.golang.org/grpc"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -19,36 +20,42 @@ import (
 )
 
 const (
-	defaultHTTPPort = "8083"
-	defaultGRPCPort = "8084"
+	defaultHTTPPort   = "8083"
+	defaultGRPCPort   = "8084"
+	dbContainerName   = "dbsvc"
+	defaultDBGRPCPort = "8085"
 )
 
 func main() {
 	var (
-		logger   log.Logger
-		httpAddr = net.JoinHostPort("0.0.0.0", envString("HTTP_PORT", defaultHTTPPort))
-		grpcAddr = net.JoinHostPort("0.0.0.0", envString("GRPC_PORT", defaultGRPCPort))
+		httpAddr   = net.JoinHostPort("0.0.0.0", envString("HTTP_PORT", defaultHTTPPort))
+		grpcAddr   = net.JoinHostPort("0.0.0.0", envString("GRPC_PORT", defaultGRPCPort))
+		grpcDBAddr = net.JoinHostPort(envString("DB_CONTAINER_NAME", dbContainerName), envString("DB_GRPC_PORT", defaultDBGRPCPort))
 	)
 
-	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
-	logger = log.With(logger, "ts", log.DefaultTimestampUTC)
+	dbConn, err := grpc.Dial(grpcDBAddr, grpc.WithInsecure())
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
 
 	var (
-		service     = calendar.NewService()
-		eps         = endpoints.NewEndpointSet(service)
-		httpHandler = transport.NewHTTPHandler(eps)
-		grpcServer  = transport.NewGRPCServer(eps)
+		dbGRPCClient = dbsvc.NewDBClient(dbConn)
+		service      = calendar.NewService(dbGRPCClient)
+		eps          = endpoints.NewEndpointSet(service)
+		httpHandler  = transport.NewHTTPHandler(eps)
+		grpcServer   = transport.NewGRPCServer(eps)
 	)
 
 	var g run.Group
 	{
 		httpListener, err := net.Listen("tcp", httpAddr)
 		if err != nil {
-			logger.Log("transport", "HTTP", "during", "Listen", "err", err)
+			log.Println("transport", "HTTP", "during", "Listen", "err", err)
 			os.Exit(1)
 		}
 		g.Add(func() error {
-			logger.Log("transport", "HTTP", "addr", httpAddr)
+			log.Println("transport", "HTTP", "addr", httpAddr)
 			return http.Serve(httpListener, httpHandler)
 		}, func(error) {
 			httpListener.Close()
@@ -57,11 +64,11 @@ func main() {
 	{
 		grpcListener, err := net.Listen("tcp", grpcAddr)
 		if err != nil {
-			logger.Log("transport", "gRPC", "during", "Listen", "err", err)
+			log.Println("transport", "gRPC", "during", "Listen", "err", err)
 			os.Exit(1)
 		}
 		g.Add(func() error {
-			logger.Log("transport", "gRPC", "addr", grpcAddr)
+			log.Println("transport", "gRPC", "addr", grpcAddr)
 			// we add the Go Kit gRPC Interceptor to our gRPC service as it is used by
 			// the here demonstrated zipkin tracing middleware.
 			baseServer := grpc.NewServer(grpc.UnaryInterceptor(kitgrpc.Interceptor))
@@ -86,7 +93,7 @@ func main() {
 			close(cancelInterrupt)
 		})
 	}
-	logger.Log("exit", g.Run())
+	log.Println("exit", g.Run())
 }
 
 func envString(env, fallback string) string {

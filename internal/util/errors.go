@@ -6,4 +6,6 @@ var (
 	ErrUnknownArgument = errors.New("unknown argument passed")
 
 	ErrInvalidArgument = errors.New("invalid argument passed")
+
+	ErrEventNotFound = errors.New("event not found")
 )

@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"calendarWorkshop/internal/domain/calendar"
 	"calendarWorkshop/internal/util"
 	"calendarWorkshop/pkg/calendar/endpoints"
 	"context"
@@ -59,13 +60,11 @@ func NewHTTPHandler(ep endpoints.Set) http.Handler {
 
 func decodeHTTPIndexEventRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	var req endpoints.IndexEventRequest
-	if r.ContentLength == 0 {
-		return req, nil
+	form := r.ParseForm()
+	if form != nil {
+		return nil, form
 	}
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
-		return nil, err
-	}
+	req.Filters = calendar.MapToFilters(r.Form)
 	return req, nil
 }
 
@@ -100,17 +99,17 @@ func decodeHTTPUpdateEventRequest(_ context.Context, r *http.Request) (interface
 	}
 	return endpoints.UpdateEventRequest{
 		EventID: id,
-		Event:   nil,
+		Event:   req.Event,
 	}, nil
 }
 
 func decodeHTTPDeleteEventRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	var req endpoints.DeleteEventRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
-		return nil, err
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
+	if !ok {
+		return nil, ErrBadRouting
 	}
-	return req, nil
+	return endpoints.DeleteEventRequest{EventID: id}, nil
 }
 
 func decodeHTTPServiceStatusRequest(_ context.Context, _ *http.Request) (interface{}, error) {

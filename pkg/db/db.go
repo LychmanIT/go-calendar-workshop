@@ -36,12 +36,7 @@ func (d *dbService) GetUser(ctx context.Context, auth *models.Auth) (int, error)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-
-	counter := 0
-	for row.Next() {
-		counter++
-	}
-	if counter == 0 {
+	if !db.IsRowsAffected(row) {
 		return http.StatusNotFound, nil
 	}
 
@@ -138,6 +133,7 @@ func (d *dbService) AllEvents(ctx context.Context, filters ...models.Filter) ([]
 }
 
 //ShowEvent receives an ID of the event and returns that event from the database.
+//WARNING! returns nil event instance if there is no event.
 func (d *dbService) ShowEvent(ctx context.Context, ID string) (*models.Event, error) {
 	event, err := d.findEventByID(ctx, ID)
 	if err != nil {
@@ -154,6 +150,15 @@ func (d *dbService) UpdateEvent(ctx context.Context, ID string, e *models.Event)
 		return http.StatusInternalServerError, err
 	}
 	defer conn.Release()
+
+	row, err := conn.Query(context.Background(),
+		"SELECT id FROM events WHERE id = $1", ID)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	if !db.IsRowsAffected(row) {
+		return http.StatusNotFound, nil
+	}
 
 	_, err = d.DeleteEvent(ctx, ID)
 	if err != nil {
@@ -190,10 +195,19 @@ func (d *dbService) DeleteEvent(ctx context.Context, ID string) (int, error) {
 	}
 	defer conn.Release()
 
+	row, err := conn.Query(context.Background(),
+		"SELECT id FROM events WHERE id = $1", ID)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	if !db.IsRowsAffected(row) {
+		return http.StatusNotFound, nil
+	}
+
 	_, err = conn.Query(context.Background(), "DELETE FROM events WHERE id = $1", ID)
 	if err != nil {
 		log.Fatal("error while executing query in DeleteEvent")
-		return http.StatusNotFound, err
+		return http.StatusInternalServerError, err
 	}
 
 	return http.StatusOK, nil
@@ -219,7 +233,7 @@ func (d *dbService) findEventByID(ctx context.Context, ID string) (*models.Event
 		log.Fatal("error while executing query in findEventByID")
 	}
 
-	for rows.Next() { //findEventByID receives an ID of needed event and finds it in the database
+	for rows.Next() {
 
 		values, err := rows.Values()
 		if err != nil {

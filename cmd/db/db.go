@@ -35,6 +35,21 @@ func main() {
 	}
 	defer dbConn.Close()
 
+	//conn, err := dbConn.Acquire(context.Background())
+	//if err != nil {
+	//	panic(err)
+	//}
+	//defer conn.Release()
+	//
+	//pass := "gopassword"
+	//passHash := md5.New()
+	//passHash.Write([]byte(pass))
+	//password := hex.EncodeToString(passHash.Sum(nil))
+	//
+	//_ = conn.QueryRow(context.Background(),
+	//	"INSERT INTO users (id, username, password) VALUES ($1, $2, $3) RETURNING id",
+	//	uuid.New().String(), "gouser", password)
+
 	var (
 		service    = db.NewService(dbConn)
 		eps        = endpoints.NewEndpointSet(service)

@@ -184,7 +184,7 @@ func decodeGRPCServiceStatusRequest(_ context.Context, grpcReq interface{}) (int
 
 func encodeGRPCGetUserResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
 	reply := grpcReply.(endpoints.GetUserResponse)
-	return &dbsvc.GetUserReply{Status: int32(reply.Status), Err: reply.Err}, nil
+	return &dbsvc.GetUserReply{Id: reply.Id, Err: reply.Err}, nil
 }
 
 func encodeGRPCAllEventsResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {

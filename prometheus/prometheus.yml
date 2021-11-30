@@ -1,0 +1,16 @@
+# global config
+global:
+  scrape_interval:     120s
+  evaluation_interval: 120s
+
+  external_labels:
+    monitor: 'calendar'
+
+rule_files:
+
+scrape_configs:
+  - job_name: calendar
+    scrape_interval: 10s
+    static_configs:
+      - targets:
+          - calendarsvc:8080

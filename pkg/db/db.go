@@ -1,11 +1,12 @@
 package db
 
 import (
-	"calendarWorkshop/internal/domain/db"
+	"calendarWorkshop/internal/util"
 	"calendarWorkshop/models"
 	"context"
 	"crypto/md5"
 	"encoding/hex"
+	"errors"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"log"
@@ -19,11 +20,11 @@ type dbService struct {
 //NewService returns new dbService instance.
 func NewService(conn *pgxpool.Pool) Service { return &dbService{DBConn: conn} }
 
-//GetUser returns the status 200 if user exists in the database and 404 if not.
-func (d *dbService) GetUser(ctx context.Context, auth *models.Auth) (int, error) {
+//GetUser returns user ID if user exists in the database and error if not.
+func (d *dbService) GetUser(ctx context.Context, auth *models.Auth) (string, error) {
 	conn, err := d.DBConn.Acquire(ctx)
 	if err != nil {
-		return http.StatusInternalServerError, err
+		return "", errors.New("error with db connection")
 	}
 	defer conn.Release()
 
@@ -31,16 +32,16 @@ func (d *dbService) GetUser(ctx context.Context, auth *models.Auth) (int, error)
 	passHash.Write([]byte(auth.Password))
 	password := hex.EncodeToString(passHash.Sum(nil))
 
-	row, err := conn.Query(context.Background(),
+	row := conn.QueryRow(context.Background(),
 		"SELECT id FROM users WHERE username = $1 AND password = $2", auth.Username, password)
+
+	var id string
+	err = row.Scan(&id)
 	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	if !db.IsRowsAffected(row) {
-		return http.StatusNotFound, nil
+		return "", errors.New("no user found")
 	}
 
-	return http.StatusOK, nil
+	return id, nil
 }
 
 //AddEvent receives event model and returns status 200 if it was successfully stored
@@ -89,7 +90,7 @@ func (d *dbService) AllEvents(ctx context.Context, filters ...models.Filter) ([]
 	var query = "select * from events"
 
 	if filters != nil {
-		query = db.JoinQueryFilter(query, filters)
+		query = util.JoinQueryFilter(query, filters)
 	}
 
 	rows, err := conn.Query(context.Background(), query)
@@ -156,7 +157,7 @@ func (d *dbService) UpdateEvent(ctx context.Context, ID string, e *models.Event)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	if !db.IsRowsAffected(row) {
+	if !util.IsRowsAffected(row) {
 		return http.StatusNotFound, nil
 	}
 
@@ -200,7 +201,7 @@ func (d *dbService) DeleteEvent(ctx context.Context, ID string) (int, error) {
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	if !db.IsRowsAffected(row) {
+	if !util.IsRowsAffected(row) {
 		return http.StatusNotFound, nil
 	}
 

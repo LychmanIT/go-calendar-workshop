@@ -108,16 +108,16 @@ func MakeServiceStatusEndpoint(svc db.Service) endpoint.Endpoint {
 	}
 }
 
-func (s *Set) GetUser(ctx context.Context, auth *domain.Auth) (int, error) {
+func (s *Set) GetUser(ctx context.Context, auth *domain.Auth) (string, error) {
 	resp, err := s.GetUserEndpoint(ctx, GetUserRequest{Auth: auth})
 	if err != nil {
-		return http.StatusBadRequest, err
+		return "", err
 	}
 	getResp := resp.(GetUserResponse)
 	if getResp.Err != "" {
-		return http.StatusBadRequest, errors.New(getResp.Err)
+		return "", errors.New(getResp.Err)
 	}
-	return getResp.Status, nil
+	return getResp.Id, nil
 }
 
 func (s *Set) IndexEvent(ctx context.Context, filters ...domain.Filter) ([]domain.Event, error) {

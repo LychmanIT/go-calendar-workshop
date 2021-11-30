@@ -1,4 +1,4 @@
-package calendar
+package util
 
 import (
 	"calendarWorkshop/models"

@@ -10,28 +10,76 @@ import (
 )
 
 type Set struct {
-	IndexEventEndpoint    endpoint.Endpoint
-	StoreEventEndpoint    endpoint.Endpoint
-	ShowEventEndpoint     endpoint.Endpoint
-	UpdateEventEndpoint   endpoint.Endpoint
-	DeleteEventEndpoint   endpoint.Endpoint
-	ServiceStatusEndpoint endpoint.Endpoint
+	LoginEndpoint          endpoint.Endpoint
+	LogoutEndpoint         endpoint.Endpoint
+	ChangeTimezoneEndpoint endpoint.Endpoint
+	IndexEventEndpoint     endpoint.Endpoint
+	StoreEventEndpoint     endpoint.Endpoint
+	ShowEventEndpoint      endpoint.Endpoint
+	UpdateEventEndpoint    endpoint.Endpoint
+	DeleteEventEndpoint    endpoint.Endpoint
+	ServiceStatusEndpoint  endpoint.Endpoint
 }
 
 func NewEndpointSet(svc calendar.Service) Set {
 	return Set{
-		IndexEventEndpoint:    MakeIndexEventEndpoint(svc),
-		StoreEventEndpoint:    MakeStoreEventEndpoint(svc),
-		ShowEventEndpoint:     MakeShowEventEndpoint(svc),
-		UpdateEventEndpoint:   MakeUpdateEventEndpoint(svc),
-		DeleteEventEndpoint:   MakeDeleteEventEndpoint(svc),
-		ServiceStatusEndpoint: MakeServiceStatusEndpoint(svc),
+		LoginEndpoint:          MakeLoginEndpoint(svc),
+		LogoutEndpoint:         MakeLogoutEndpoint(svc),
+		ChangeTimezoneEndpoint: MakeChangeTimezoneEndpoint(svc),
+		IndexEventEndpoint:     MakeIndexEventEndpoint(svc),
+		StoreEventEndpoint:     MakeStoreEventEndpoint(svc),
+		ShowEventEndpoint:      MakeShowEventEndpoint(svc),
+		UpdateEventEndpoint:    MakeUpdateEventEndpoint(svc),
+		DeleteEventEndpoint:    MakeDeleteEventEndpoint(svc),
+		ServiceStatusEndpoint:  MakeServiceStatusEndpoint(svc),
+	}
+}
+
+func MakeLoginEndpoint(svc calendar.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(LoginRequest)
+		token, err := svc.Login(ctx, req.Credentials)
+		if err != nil {
+			return LoginResponse{token, err.Error()}, nil
+		}
+		return LoginResponse{token, ""}, nil
+	}
+}
+
+func MakeLogoutEndpoint(svc calendar.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(LogoutRequest)
+		if req.Err != "" {
+			return LogoutResponse{http.StatusInternalServerError, req.Err}, nil
+		}
+		status, err := svc.Logout(ctx, req.Token)
+		if err != nil {
+			return LogoutResponse{status, err.Error()}, nil
+		}
+		return LogoutResponse{status, ""}, nil
+	}
+}
+
+func MakeChangeTimezoneEndpoint(svc calendar.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(ChangeTimezoneRequest)
+		if req.Err != "" {
+			return ChangeTimezoneResponse{http.StatusInternalServerError, req.Err}, nil
+		}
+		status, err := svc.ChangeTimezone(ctx, req.Token, req.Timezone)
+		if err != nil {
+			return ChangeTimezoneResponse{status, err.Error()}, nil
+		}
+		return ChangeTimezoneResponse{status, ""}, nil
 	}
 }
 
 func MakeIndexEventEndpoint(svc calendar.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(IndexEventRequest)
+		if req.Err != "" {
+			return IndexEventResponse{nil, req.Err}, nil
+		}
 		events, err := svc.IndexEvent(ctx, req.Filters...)
 		if err != nil {
 			return IndexEventResponse{events, err.Error()}, nil
@@ -43,6 +91,9 @@ func MakeIndexEventEndpoint(svc calendar.Service) endpoint.Endpoint {
 func MakeStoreEventEndpoint(svc calendar.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(StoreEventRequest)
+		if req.Err != "" {
+			return StoreEventResponse{http.StatusInternalServerError, req.Err}, nil
+		}
 		status, err := svc.StoreEvent(ctx, req.Event)
 		if err != nil {
 			return StoreEventResponse{status, err.Error()}, nil
@@ -54,6 +105,9 @@ func MakeStoreEventEndpoint(svc calendar.Service) endpoint.Endpoint {
 func MakeShowEventEndpoint(svc calendar.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(ShowEventRequest)
+		if req.Err != "" {
+			return ShowEventResponse{nil, req.Err}, nil
+		}
 		event, err := svc.ShowEvent(ctx, req.EventID)
 		if err != nil {
 			return ShowEventResponse{event, err.Error()}, nil
@@ -65,6 +119,9 @@ func MakeShowEventEndpoint(svc calendar.Service) endpoint.Endpoint {
 func MakeUpdateEventEndpoint(svc calendar.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(UpdateEventRequest)
+		if req.Err != "" {
+			return UpdateEventResponse{http.StatusInternalServerError, req.Err}, nil
+		}
 		status, err := svc.UpdateEvent(ctx, req.EventID, req.Event)
 		if err != nil {
 			return UpdateEventResponse{status, err.Error()}, nil
@@ -76,6 +133,9 @@ func MakeUpdateEventEndpoint(svc calendar.Service) endpoint.Endpoint {
 func MakeDeleteEventEndpoint(svc calendar.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(DeleteEventRequest)
+		if req.Err != "" {
+			return DeleteEventResponse{http.StatusInternalServerError, req.Err}, nil
+		}
 		status, err := svc.DeleteEvent(ctx, req.EventID)
 		if err != nil {
 			return DeleteEventResponse{status, err.Error()}, nil
@@ -93,6 +153,42 @@ func MakeServiceStatusEndpoint(svc calendar.Service) endpoint.Endpoint {
 		}
 		return ServiceStatusResponse{code, ""}, nil
 	}
+}
+
+func (s *Set) Login(ctx context.Context, credentials domain.Auth) (string, error) {
+	resp, err := s.LoginEndpoint(ctx, LoginRequest{Credentials: credentials})
+	if err != nil {
+		return "", errors.New("invalid credentials")
+	}
+	getResp := resp.(LoginResponse)
+	if getResp.Err != "" {
+		return "", errors.New(getResp.Err)
+	}
+	return getResp.Token, nil
+}
+
+func (s *Set) Logout(ctx context.Context, token string) (int, error) {
+	resp, err := s.LogoutEndpoint(ctx, LogoutRequest{Token: token})
+	if err != nil {
+		return http.StatusUnauthorized, err
+	}
+	getResp := resp.(LogoutResponse)
+	if getResp.Err != "" {
+		return getResp.Status, errors.New(getResp.Err)
+	}
+	return getResp.Status, nil
+}
+
+func (s *Set) ChangeTimezone(ctx context.Context, token string, tz string) (int, error) {
+	resp, err := s.ChangeTimezoneEndpoint(ctx, ChangeTimezoneRequest{Token: token, Timezone: tz})
+	if err != nil {
+		return http.StatusUnauthorized, err
+	}
+	getResp := resp.(ChangeTimezoneResponse)
+	if getResp.Err != "" {
+		return getResp.Status, errors.New(getResp.Err)
+	}
+	return getResp.Status, nil
 }
 
 func (s *Set) IndexEvent(ctx context.Context, filters ...domain.Filter) ([]domain.Event, error) {

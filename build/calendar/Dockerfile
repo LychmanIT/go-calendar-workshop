@@ -15,7 +15,14 @@ EXPOSE 8084
 # Final stage
 FROM debian:latest
 
+COPY --from=golang:bullseye /usr/local/go/ /usr/local/go/
+
+ENV PATH="/usr/local/go/bin:${PATH}"
+
+RUN mkdir -p ${GOPATH}/src ${GOPATH}/bin
+
 WORKDIR /
+COPY --from=build /dockerdev /calendar-app
 COPY --from=build /calendar /
 
 CMD ["/calendar"]

@@ -1,6 +1,7 @@
-package calendar
+package util
 
 import (
+	authsvc "calendarWorkshop/api/v1/pb/auth"
 	dbsvc "calendarWorkshop/api/v1/pb/db"
 	"calendarWorkshop/models"
 )
@@ -60,4 +61,18 @@ func FiltersToGRPC(filters []models.Filter) []*dbsvc.AllEventsRequest_Filters {
 	}
 
 	return result
+}
+
+func CredentialsToGRPC(credentials models.Auth) *dbsvc.DBAuth {
+	return &dbsvc.DBAuth{
+		Username: credentials.Username,
+		Password: credentials.Password,
+	}
+}
+
+func AuthCredentialsToGRPC(credentials models.Auth) *authsvc.AuthCredentials {
+	return &authsvc.AuthCredentials{
+		Username: credentials.Username,
+		Password: credentials.Password,
+	}
 }

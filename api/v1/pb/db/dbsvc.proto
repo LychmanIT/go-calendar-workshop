@@ -22,7 +22,7 @@ service DB {
 
 }
 
-message Auth {
+message DBAuth {
   string username = 1;
   string password = 2;
 }
@@ -38,11 +38,11 @@ message Event {
 }
 
 message GetUserRequest {
-  Auth auth = 1;
+  DBAuth auth = 1;
 }
 
 message GetUserReply {
-  int32 status = 1;
+  string id = 1;
   string err = 2;
 }
 

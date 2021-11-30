@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+option go_package = "./;authsvc";
+
+package pb;
+
+service Auth {
+
+  rpc AuthLogin(AuthLoginRequest) returns (AuthLoginReply) {}
+
+  rpc AuthLogout(AuthLogoutRequest) returns (AuthLogoutReply) {}
+
+  rpc AuthVerifyToken(AuthVerifyTokenRequest) returns (AuthVerifyTokenReply) {}
+
+  rpc AuthChangeTimezone(AuthChangeTimezoneRequest) returns (AuthChangeTimezoneReply) {}
+
+  rpc AuthGetTimezone(AuthGetTimezoneRequest) returns (AuthGetTimezoneReply) {}
+
+  rpc AuthServiceStatus (AuthServiceStatusRequest) returns (AuthServiceStatusReply) {}
+
+}
+
+message AuthCredentials {
+  string username = 1;
+  string password = 2;
+}
+
+message AuthLoginRequest {
+  AuthCredentials credentials = 1;
+}
+
+message AuthLoginReply {
+  string token = 1;
+  string err = 2;
+}
+
+message AuthLogoutRequest {
+  string token = 1;
+}
+
+message AuthLogoutReply {
+  int32 status = 1;
+  string err = 2;
+}
+
+message AuthVerifyTokenRequest {
+  string token = 1;
+}
+
+message AuthVerifyTokenReply {
+  string err = 1;
+}
+
+message AuthChangeTimezoneRequest {
+  string token = 1;
+  string timezone = 2;
+}
+
+message AuthChangeTimezoneReply {
+  int32 status = 1;
+  string err = 2;
+}
+
+message AuthGetTimezoneRequest {
+  string token = 1;
+}
+
+message AuthGetTimezoneReply {
+  string timezone = 1;
+  string err = 2;
+}
+
+message AuthServiceStatusRequest {}
+
+message AuthServiceStatusReply {
+  int32 status = 1;
+  string err = 2;
+}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	authsvc "calendarWorkshop/api/v1/pb/auth"
 	dbsvc "calendarWorkshop/api/v1/pb/db"
 	"calendarWorkshop/pkg/calendar"
 	"calendarWorkshop/pkg/calendar/endpoints"
@@ -14,23 +15,25 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-
-	pb "calendarWorkshop/api/v1/pb/calendar"
-	kitgrpc "github.com/go-kit/kit/transport/grpc"
+	//pb "calendarWorkshop/api/v1/pb/calendar"
+	//kitgrpc "github.com/go-kit/kit/transport/grpc"
 )
 
 const (
-	defaultHTTPPort   = "8083"
-	defaultGRPCPort   = "8084"
-	dbContainerName   = "dbsvc"
-	defaultDBGRPCPort = "8085"
+	defaultHTTPPort     = "8083"
+	defaultGRPCPort     = "8084"
+	dbContainerName     = "dbsvc"
+	defaultDBGRPCPort   = "8085"
+	authContainerName   = "authsvc"
+	defaultAuthGRPCPort = "8086"
 )
 
 func main() {
 	var (
-		httpAddr   = net.JoinHostPort("0.0.0.0", envString("HTTP_PORT", defaultHTTPPort))
-		grpcAddr   = net.JoinHostPort("0.0.0.0", envString("GRPC_PORT", defaultGRPCPort))
-		grpcDBAddr = net.JoinHostPort(envString("DB_CONTAINER_NAME", dbContainerName), envString("DB_GRPC_PORT", defaultDBGRPCPort))
+		httpAddr = net.JoinHostPort("0.0.0.0", envString("HTTP_PORT", defaultHTTPPort))
+		//grpcAddr   = net.JoinHostPort("0.0.0.0", envString("GRPC_PORT", defaultGRPCPort))
+		grpcDBAddr   = net.JoinHostPort(envString("DB_CONTAINER_NAME", dbContainerName), envString("DB_GRPC_PORT", defaultDBGRPCPort))
+		grpcAuthAddr = net.JoinHostPort(envString("AUTH_CONTAINER_NAME", authContainerName), envString("AUTH_GRPC_PORT", defaultAuthGRPCPort))
 	)
 
 	dbConn, err := grpc.Dial(grpcDBAddr, grpc.WithInsecure())
@@ -39,12 +42,19 @@ func main() {
 		os.Exit(1)
 	}
 
+	authConn, err := grpc.Dial(grpcAuthAddr, grpc.WithInsecure())
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+
 	var (
-		dbGRPCClient = dbsvc.NewDBClient(dbConn)
-		service      = calendar.NewService(dbGRPCClient)
-		eps          = endpoints.NewEndpointSet(service)
-		httpHandler  = transport.NewHTTPHandler(eps)
-		grpcServer   = transport.NewGRPCServer(eps)
+		dbGRPCClient   = dbsvc.NewDBClient(dbConn)
+		authGRPCClient = authsvc.NewAuthClient(authConn)
+		service        = calendar.NewService(dbGRPCClient, authGRPCClient)
+		eps            = endpoints.NewEndpointSet(service)
+		httpHandler    = transport.NewHTTPHandler(eps, authGRPCClient)
+		//grpcServer   = transport.NewGRPCServer(eps)
 	)
 
 	var g run.Group
@@ -61,23 +71,23 @@ func main() {
 			httpListener.Close()
 		})
 	}
-	{
-		grpcListener, err := net.Listen("tcp", grpcAddr)
-		if err != nil {
-			log.Println("transport", "gRPC", "during", "Listen", "err", err)
-			os.Exit(1)
-		}
-		g.Add(func() error {
-			log.Println("transport", "gRPC", "addr", grpcAddr)
-			// we add the Go Kit gRPC Interceptor to our gRPC service as it is used by
-			// the here demonstrated zipkin tracing middleware.
-			baseServer := grpc.NewServer(grpc.UnaryInterceptor(kitgrpc.Interceptor))
-			pb.RegisterCalendarServer(baseServer, grpcServer)
-			return baseServer.Serve(grpcListener)
-		}, func(error) {
-			grpcListener.Close()
-		})
-	}
+	//{
+	//	grpcListener, err := net.Listen("tcp", grpcAddr)
+	//	if err != nil {
+	//		log.Println("transport", "gRPC", "during", "Listen", "err", err)
+	//		os.Exit(1)
+	//	}
+	//	g.Add(func() error {
+	//		log.Println("transport", "gRPC", "addr", grpcAddr)
+	//		// we add the Go Kit gRPC Interceptor to our gRPC service as it is used by
+	//		// the here demonstrated zipkin tracing middleware.
+	//		baseServer := grpc.NewServer(grpc.UnaryInterceptor(kitgrpc.Interceptor))
+	//		pb.RegisterCalendarServer(baseServer, grpcServer)
+	//		return baseServer.Serve(grpcListener)
+	//	}, func(error) {
+	//		grpcListener.Close()
+	//	})
+	//}
 	{
 		cancelInterrupt := make(chan struct{})
 		g.Add(func() error {

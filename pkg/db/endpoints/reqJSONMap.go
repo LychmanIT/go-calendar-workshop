@@ -7,8 +7,8 @@ type GetUserRequest struct {
 }
 
 type GetUserResponse struct {
-	Status int    `json:"status"`
-	Err    string `json:"err,omitempty"`
+	Id  string `json:"id"`
+	Err string `json:"err,omitempty"`
 }
 
 type AllEventsRequest struct {
